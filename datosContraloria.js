@@ -1,11 +1,9 @@
 const { chromium } = require('playwright');
-const fs = require('fs');
-const { setTimeout } = require('timers');
-const { resolve } = require('path');
+
 
 (async () => {
     // Make sure to run headed.
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({ headless: true });
 
     const context = await browser.newContext({
         viewport: {
@@ -56,13 +54,3 @@ const down = (page, entidad) => {
         resolve()
     })
 }
-
-// npx playwright codegen wikipedia.org 
-// npx playwright-cli --viewport-size 800,600 codegen wikipedia.org 
-// npx playwright open --viewport-size=800,600 --color-scheme=dark twitter.com
-
-
-// https://www.contraloria.gob.pa/CGR.PLANILLAGOB.UI/Formas/Index
-// https://www.datosabiertos.gob.pa/dataset/css-planilla-de-recursos-humanos-enero-2022
-// https://www.datosabiertos.gob.pa/dataset/css-planilla-institucional-febrero-2022
-
