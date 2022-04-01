@@ -4,7 +4,7 @@ const { setTimeout } = require('timers');
 
 (async () => {
     // Make sure to run headed.
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: false });
 
     const context = await browser.newContext({
         viewport: {
@@ -14,7 +14,7 @@ const { setTimeout } = require('timers');
     })
 
     const page = await context.newPage();
-    await page.goto('http://ogov.defensoria.gob.pa/index.php?option=com_k2&view=item&layout=item&id=11')
+    await page.goto('https://www.contraloria.gob.pa/CGR.PLANILLAGOB.UI/Formas/Index')
     
     const wtitle = page.locator('h2.itemTitle');
     const title = await wtitle.textContent();
@@ -31,32 +31,32 @@ const { setTimeout } = require('timers');
 
     let wFile = '', head = true
 
-    while (noPages > 0) {
-        const { data } = await writeData(page, head)
+    // while (noPages > 0) {
+    //     const { data } = await writeData(page, head)
 
-        // const espera = page.locator('table.tableJX6 tr')
-        // await espera.waitFor()
+    //     // const espera = page.locator('table.tableJX6 tr')
+    //     // await espera.waitFor()
 
-        noPages -= 1
-        wFile += data
-        head = false
+    //     noPages -= 1
+    //     wFile += data
+    //     head = false
 
-        await locator.click()
-        // await page.waitForSelector('table')
-        await page.waitForTimeout(1000);
-    } 
+    //     await locator.click()
+    //     // await page.waitForSelector('table')
+    //     await page.waitForTimeout(1000);
+    // } 
 
     // console.log(wFile)
    
-    fs.writeFile(entidad, wFile, (err) => {
-        if (err)
-            console.log(err);
-        else {
-            console.log("File written successfully\n");
-            console.log("The written has the following contents:");
-            // console.log(fs.readFileSync(entidad, "utf8"));
-        }
-    });
+    // fs.writeFile(entidad, wFile, (err) => {
+    //     if (err)
+    //         console.log(err);
+    //     else {
+    //         console.log("File written successfully\n");
+    //         console.log("The written has the following contents:");
+    //         // console.log(fs.readFileSync(entidad, "utf8"));
+    //     }
+    // });
 
     await context.close()
     await browser.close()
