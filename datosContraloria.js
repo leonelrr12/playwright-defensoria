@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const { setTimeout } = require('timers');
+const { resolve } = require('path');
 
 (async () => {
     // Make sure to run headed.
@@ -16,97 +17,43 @@ const { setTimeout } = require('timers');
     const page = await context.newPage();
     await page.goto('https://www.contraloria.gob.pa/CGR.PLANILLAGOB.UI/Formas/Index')
     
-    const wtitle = page.locator('h2.itemTitle');
+    const wtitle = page.locator('#MainContent_lblFecha');
     const title = await wtitle.textContent();
-    const entidad = title.trim() + '1.csv'
+    console.log(title);
 
-    const locator = page.locator('text=Next');
-    const pages = page.locator('text=Page 1 of');
-
-    let noPages = await pages.innerText();
-
-    noPages = noPages.split(' ')[3];
-    // console.log(noPages);
-    noPages = 2;
-
-    let wFile = '', head = true
-
-    // while (noPages > 0) {
-    //     const { data } = await writeData(page, head)
-
-    //     // const espera = page.locator('table.tableJX6 tr')
-    //     // await espera.waitFor()
-
-    //     noPages -= 1
-    //     wFile += data
-    //     head = false
-
-    //     await locator.click()
-    //     // await page.waitForSelector('table')
-    //     await page.waitForTimeout(1000);
-    // } 
-
-    // console.log(wFile)
-   
-    // fs.writeFile(entidad, wFile, (err) => {
-    //     if (err)
-    //         console.log(err);
-    //     else {
-    //         console.log("File written successfully\n");
-    //         console.log("The written has the following contents:");
-    //         // console.log(fs.readFileSync(entidad, "utf8"));
-    //     }
-    // });
+    const entidades = ['TRIBUNAL DE CUENTAS','MINISTERIO DE AMBIENTE','MINISTERIO DE CULTURA']
+    for (const entidad of entidades) {
+        await down(page, entidad)
+    }
 
     await context.close()
     await browser.close()
 })();
 
+const down = (page, entidad) => {
 
-const writeData = (page, head) => {
-    return new Promise( async (resolve, reject) => {
-        const rows = page.locator('table.tableJX6 tr');
-        // Pattern 1: use locator methods to calculate text on the whole list.
-        const texts = await rows.allTextContents();
-    
-        // Pattern 2: do something with each element in the list.
-        let cols = [], n = 0, wcols = '', wPage = ''
-        const count = await rows.count()
-        for (let i = 0; i < count; ++i) {
-            // console.log(await rows.nth(i).textContent());
-            // wcols = await rows.nth(i).allTextContents()
-            wcols = await rows.nth(i).innerHTML()
-            cols = wcols.split('<td')
-            // console.log(cols[0], cols[1], cols[2], cols[3], cols[4], cols[5], cols[6])
+    return new Promise( async(resolve, reject) => {
 
-            let ix=0, fx=0, wLine=''
-            n = cols.length
-            for (let j = 0; j < n; j++) {
-                if(i===0) {
-                    if(head) {
-                        ix = cols[j].indexOf('"field">')
-                        ix = cols[j].indexOf('"field">', ix+1)
-                        fx = cols[j].indexOf('</a>', ix+1)
-                    }
-                } else {
-                    ix = cols[j].indexOf('"field">')
-                    fx = cols[j].indexOf('</span>', ix+1)
-                }
-                if(ix > 0) {
-                    // console.log(cols[j].slice(ix+8, fx));        
-                    wLine += cols[j].slice(ix+8, fx) + '|'
-                }
-            }
-            // console.log(wLine.slice(0, wLine.length-1))
-            if(wLine.length > 20) {
-                wPage += wLine.slice(0, wLine.length-1) + '\n'
-            }
+        const reliablePath = `${entidad}.xlsx`
+  
+        await page.selectOption('#MainContent_ddlInstituciones', entidad);
+        const btn = page.locator('#MainContent_btnBuscar');
+        await btn.click()
 
-            // xy += 1
-            // if(xy > 3) break;
-        }
+        page.locator('#Div_BTN').waitFor();
 
-        resolve({ data: wPage });
+        const [ download ] = await Promise.all([
+            page.waitForEvent('download'), // wait for download to start
+            page.click('#Div_BTN button')
+        ]);
+        // wait for download to complete
+        // const path = await download.path();
+        // save into the desired path
+        await download.saveAs(reliablePath);
+        // wait for the download and delete the temporary file
+        await download.delete()
+
+        resolve()
     })
 }
 
